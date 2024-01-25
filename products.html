@@ -109,7 +109,6 @@
                 </div>
                 <div class="col-sm-8">
                   <div class="mb-3">
-                    {{modalData}}
                     <label for="title" class="form-label">標題</label>
                     <input id="title" type="text" class="form-control" placeholder="請輸入標題" v-model="modalData.title">
                   </div>
@@ -254,7 +253,6 @@
                 this.productModal.show()
               } else if(name === "del") {
                 this.modalData = {...product}
-                console.log(product.id)
                 this.delProductModal.show()
               }
             },
