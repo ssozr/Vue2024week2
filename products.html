@@ -61,7 +61,7 @@
               </td>
               <td>
                 <div class="btn-group">
-                  <button type="button" class="btn btn-outline-primary btn-sm" id="ediModal" @click='openModal("edi",product)'>
+                  <button type="button" class="btn btn-outline-primary btn-sm" id="editModal" @click='openModal("edit",product)'>
                     編輯
                   </button>
                   <button type="button" class="btn btn-outline-danger btn-sm" @click='openModal("del",product)'>
@@ -72,131 +72,17 @@
             </tr>
           </tbody>
         </table>
+        <pagination :pages="pages" :get-products="getProducts"></pagination>
       </div>
-      <!-- Modal -->
-      <div id="productModal" ref="productModal" class="modal fade" tabindex="-1" aria-labelledby="productModalLabel"
-           aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-          <div class="modal-content border-0">
-            <div class="modal-header bg-dark text-white">
-              <h5 id="productModalLabel" class="modal-title">
-                <span>{{modalProduct.title}}</span>
-              </h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <div class="row">
-                <div class="col-sm-4">
-                  <div class="mb-2">
-                    <div class="mb-3">
-                      <label for="imageUrl" class="form-label">輸入圖片網址</label>
-                      <input type="text" class="form-control"
-                             placeholder="請輸入圖片連結" v-model="modalData.imageUrl">
-                    </div>
-                    <img class="img-fluid" :src="modalData.imageUrl" alt="">
-                  </div>
-                  <div>
-                    <button class="btn btn-outline-primary btn-sm d-block w-100" v-if="modalData.imageUrl" @click="addImageUrlBtn">
-                      新增圖片
-                    </button>
-                  </div>
-                  <div v-for="(img, index) in this.modalData.imagesUrl" :key="img">
-                    <img :src="img" alt="" pt-4>
-                    <button class="btn btn-outline-danger btn-sm d-block w-100" @click="delImageUrlBtn(index)">
-                      刪除圖片
-                    </button>
-                  </div>
-                </div>
-                <div class="col-sm-8">
-                  <div class="mb-3">
-                    <label for="title" class="form-label">標題</label>
-                    <input id="title" type="text" class="form-control" placeholder="請輸入標題" v-model="modalData.title">
-                  </div>
-
-                  <div class="row">
-                    <div class="mb-3 col-md-6">
-                      <label for="category" class="form-label">分類</label>
-                      <input id="category" type="text" class="form-control"
-                             placeholder="請輸入分類" v-model="modalData.category">
-                    </div>
-                    <div class="mb-3 col-md-6">
-                      <label for="price" class="form-label">單位</label>
-                      <input id="unit" type="text" class="form-control" placeholder="請輸入單位" v-model="modalData.unit">
-                    </div>
-                  </div>
-
-                  <div class="row">
-                    <div class="mb-3 col-md-6">
-                      <label for="origin_price" class="form-label">原價</label>
-                      <input id="origin_price" type="number" min="0" class="form-control" placeholder="請輸入原價" v-model="modalData.origin_price">
-                    </div>
-                    <div class="mb-3 col-md-6">
-                      <label for="price" class="form-label">售價</label>
-                      <input id="price" type="number" min="0" class="form-control"
-                             placeholder="請輸入售價" v-model="modalData.price">
-                    </div>
-                  </div>
-                  <hr>
-
-                  <div class="mb-3">
-                    <label for="description" class="form-label">產品描述</label>
-                    <textarea id="description" type="text" class="form-control"
-                              placeholder="請輸入產品描述" v-model="modalData.description">
-                    </textarea>
-                  </div>
-                  <div class="mb-3">
-                    <label for="content" class="form-label">說明內容</label>
-                    <textarea id="description" type="text" class="form-control"
-                              placeholder="請輸入說明內容" v-model="modalData.content">
-                    </textarea>
-                  </div>
-                  <div class="mb-3">
-                    <div class="form-check">
-                      <input id="is_enabled" class="form-check-input" type="checkbox"
-                             :true-value="1" :false-value="0" v-model="modalData.is_enabled">
-                      <label class="form-check-label" for="is_enabled">是否啟用</label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" >
-                取消
-              </button>
-              <button type="button" class="btn btn-primary" @click="productBtn">
-                確認
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div id="delProductModal" ref="delProductModal" class="modal fade" tabindex="-1"
-           aria-labelledby="delProductModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-          <div class="modal-content border-0">
-            <div class="modal-header bg-danger text-white">
-              <h5 id="delProductModalLabel" class="modal-title">
-                <span>刪除產品</span>
-              </h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              是否刪除
-              <strong class="text-danger"></strong> 商品(刪除後將無法恢復)。
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                取消
-              </button>
-              <button type="button" class="btn btn-danger" @click="delProductBtn">
-                確認刪除
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- Modal -->
+        <product-modal
+        :del-image-url-btn="delImageUrlBtn"
+        :add-image-url-btn="addImageUrlBtn"
+        :modal-product="modalProduct"
+        :modal-data="modalData"
+        ref="pModal"
+        :product-btn="productBtn"
+        :del-product-btn="delProductBtn"
+        ></product-modal>
     </div>
     
 
@@ -211,10 +97,13 @@
       integrity="sha384-j0CNLUeiqtyaRmlzUHCPZ+Gy5fQu0dQ6eZ/xAww941Ai1SxSY+0EQqNXNE6DZiVc"
       crossorigin="anonymous"></script>
 
-      <script>
+      <script type="module">
          const url = "https://ec-course-api.hexschool.io/v2";
         // const token = 'iQGiLKVBazMn45KrXxwLAHJkuib2';
         const api_path = "ssozr";
+
+        import pagination from './pagenation.js';
+        import productModal from './productModal.js';
         const App = {
         data() {
             return {
@@ -223,8 +112,9 @@
             num: '',
             productModal:'',
             delProductModal:'',
+            exampleModal:"",
             modalAddTitle:"新增產品",
-            modalEdiTitle: "編輯產品",
+            modalEditTitle: "編輯產品",
             modalProduct: {
               title:''
             },
@@ -238,37 +128,36 @@
               content:"",
               is_enabled:1,
               imageUrl:"",
+              addImagesUrl:'',
               imagesUrl:[]
-            }
+            },
+            pages:""
             };
         },
         methods:{
             openModal(name, product){
+              this.modalData = {
+                imagesUrl:[]
+              }
               if(name === "add") {
                 this.modalProduct.title = this.modalAddTitle
-                this.productModal.show()
-              } else if(name === "edi"){
-                this.modalProduct.title = this.modalEdiTitle
+              } else if(name === "edit"){
+                this.modalProduct.title = this.modalEditTitle
                 this.modalData = {...product}
-                this.productModal.show()
               } else if(name === "del") {
                 this.modalData = {...product}
-                this.delProductModal.show()
               }
+              this.$refs.pModal.openModal(name)
             },
-            hideModal(){
-              this.productModal.hide()
-              this.delProductModal.hide()
-            },
-            getProductsL(){
-                  axios.get(`${url}/api/${api_path}/admin/products/all`)
+            getProducts(page = 1){
+                  axios.get(`${url}/api/${api_path}/admin/products?page=${page}`)
                     .then((res)=>{
                         this.products = res.data.products
-                        console.log(this.products)
+                        this.pages = res.data.pagination
                         
                     })
                     .catch((err)=>{
-                        console.log(err);
+                        alert(`${err.data.message}`)
                     })
                 },
             check(){
@@ -279,25 +168,22 @@
                 axios.defaults.headers.common['Authorization'] = token;
                 axios.post(`${url}/api/user/check`)
                 .then((res)=>{
-                    this.getProductsL();
+                    this.getProducts();
                 })
                 .catch((err)=>{
-                    console.log(err);
                     alert("請先登入")
                     window.location.href = "index.html";
                 })
             },
             addImageUrlBtn(){
-              this.modalData.imagesUrl.push(this.modalData.imageUrl)
-              this.modalData.imageUrl = ""
+              this.modalData.imagesUrl.push(this.modalData.addImagesUrl)
+              this.modalData.addImagesUrl = ""
             },
             delImageUrlBtn(index){
-              this.modalData.imagesUrl.splice(index,1)
-              
+              this.modalData.imagesUrl.splice(index,1)            
             },
             productBtn() {
-              console.log(123)
-              data = {...this.modalData}
+              let data = {...this.modalData}
               if(this.modalProduct.title == "新增產品"){
                 axios.post(`${url}/api/${api_path}/admin/product`,
                         {
@@ -306,23 +192,13 @@
                         .then((res)=>{
                             alert("產品新增成功")
                             this.modalData = {
-                              title:"",
-                              category:"",
-                              unit:"",
-                              origin_price:"",
-                              price:"",
-                              description:"",
-                              content:"",
-                              is_enabled:1,
-                              imageUrl:"",
                               imagesUrl:[]
                             }
-                            this.hideModal()
-                            this.getProductsL()
+                            this.$refs.pModal.closeModal()
+                            this.getProducts()
                         })
                         .catch((err)=>{
-                            console.log(err);
-                            alert("產品新增失敗")
+                            alert(`${err.data.message}`)
                         })
               } else {
                 axios.put(`${url}/api/${api_path}/admin/product/${this.modalData.id}`,
@@ -332,23 +208,13 @@
                         .then((res)=>{
                             alert("產品編輯成功")
                             this.modalData = {
-                              title:"",
-                              category:"",
-                              unit:"",
-                              origin_price:"",
-                              price:"",
-                              description:"",
-                              content:"",
-                              is_enabled:1,
-                              imageUrl:"",
                               imagesUrl:[]
                             }
-                            this.hideModal()
-                            this.getProductsL()
+                            this.$refs.pModal.closeModal()
+                            this.getProducts()
                         })
                         .catch((err)=>{
-                            console.log(err);
-                            alert("產品編輯失敗")
+                            alert(`${err.data.message}`)
                         })
               }
             },
@@ -357,31 +223,25 @@
                         .then((res)=>{
                             alert("產品刪除成功")
                             this.modalData = {
-                              title:"",
-                              category:"",
-                              unit:"",
-                              origin_price:"",
-                              price:"",
-                              description:"",
-                              content:"",
-                              is_enabled:1,
-                              imageUrl:"",
                               imagesUrl:[]
                             }
-                            this.hideModal()
-                            this.getProductsL()
+                            this.$refs.pModal.closeModal()
+                            this.getProducts()
                         })
                         .catch((err)=>{
-                            console.log(err);
-                            alert("產品刪除失敗")
+                          alert(`${err.data.message}`)
                         })
             }
         },
         mounted(){
             this.check()
-            this.productModal = new bootstrap.Modal(productModal)
-            this.delProductModal = new bootstrap.Modal(delProductModal)
+            this.productModal = new bootstrap.Modal(this.$refs.productModal)
+            this.delProductModal = new bootstrap.Modal(this.$refs.delProductModal)
         },
+        components: {
+          pagination,
+          productModal,
+        }
         };
 
         Vue.createApp(App).mount("#app");
