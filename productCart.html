@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css'
+          integrity='sha512-q3eWabyZPc1XTCmF+8/LuE1ozpg5xxn7iO89yfSOd5/oKvyqLngoNGsx8jq92Y8eXJ/IRxQbEC+FGSYxtk2oiw=='
+          crossorigin='anonymous' />
+  </head>
+
+  <body>
+    <div id="app">
+      <div class="container">
+        <div class="mt-4">
+          <!-- 產品Modal -->
+          
+          <!-- 產品Modal -->
+         
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>圖片</th>
+                <th>商品名稱</th>
+                <th>價格</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="product in products" :key="product.id">
+                <td style="width: 200px">
+                  <div style="height: 100px; background-size: cover; background-position: center" :style="{backgroundImage:`url(${product.imageUrl})`}">
+                    </div>
+                </td>
+                <td>
+                    {{product.title}}
+                </td>
+                <td>
+                    <div class="h5" v-if="product.origin_price === product.price"></div>
+                  <div v-else>
+                    <del class="h6">原價 {{ product.origin_price }} 元</del>
+                    <div class="h5">現在只要 {{ product.price }} 元</div>
+                  </div>
+                </td>
+                <td>
+                  <div class="btn-group btn-group-sm">
+                    <button type="button" :disabled="loading" class="btn btn-outline-secondary" @click="openProductModal(product)">
+                      <i v-if="loading" class="fas fa-spinner fa-pulse"></i>
+                      查看更多
+                    </button>
+                    <button type="button" :disabled="loading" class="btn btn-outline-danger" @click="addTocart(product.id,1)">
+                      <i v-if="loading" class="fas fa-spinner fa-pulse"></i>
+                      加到購物車
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <!-- 購物車列表 -->
+          <div class="text-end" v-if="cartsData.data">
+            <button class="btn btn-outline-danger" type="button" @click="openRemoveModal">清空購物車</button>
+          </div>
+          <table class="table align-middle" v-if="cartsData.data">
+            <thead>
+              <tr>
+                <th></th>
+                <th>品名</th>
+                <th style="width: 180px">數量/單位</th>
+                <th>單價</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template v-if="cartsData.data">
+                <tr v-for="item in cartsData.data.carts" :key="item.id">
+                  <td>
+                    <button type="button" class="btn btn-outline-danger btn-sm" @click="openRemoveModal(item)">
+                      <i class="fas fa-spinner fa-pulse" v-if="cartXLoading" :disabled="cartXLoading"></i>
+                      x
+                    </button>
+                  </td>
+                  <td>
+                    {{ item.product.title }}
+                    <div class="text-success">
+                      已套用優惠券
+                    </div>
+                  </td>
+                  <td>
+                    <div class="input-group input-group-sm">
+                      <div class="input-group mb-3">
+                        <button class="btn btn-outline-primary" :disabled="item.qty==1" @click="item.qty--;changeQty(item,item.qty)">-</button>
+                        <input 
+                             min="1" type="number" class="form-control" :value="item.qty" :disabled="loading" readonly>
+                             <button class="btn btn-outline-primary" @click="item.qty++;changeQty(item,item.qty)">+</button>
+                        <span class="input-group-text" id="basic-addon2">堂</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    {{item.product.price}}
+                  </td>
+                  <td class="text-end">
+                    
+                    <small class="text-success">折扣價：</small>
+                    {{  }}
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" class="text-end">總計</td>
+                <td class="text-end">{{ cartsData.data.total }}</td>
+              </tr>
+              <tr>
+                <td colspan="3" class="text-end text-success">折扣價</td>
+                <td class="text-end text-success">{{ cartsData.data.final_total }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="my-5 row justify-content-center">
+          <v-form ref="form" class="col-md-6" v-slot="{ errors }" @submit="onSubmit">
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <v-field id="email" name="email" type="email" class="form-control" v-model="userData.user.email"
+                       :class="{ 'is-invalid': errors['email'] }" placeholder="請輸入 Email"   rules="required"
+                      ></v-field>
+              <error-message name="email" class="invalid-feedback"></error-message>
+            </div>
+
+            <div class="mb-3">
+              <label for="name" class="form-label">收件人姓名</label>
+              <v-field id="name" name="姓名" type="text" class="form-control" :class="{ 'is-invalid': errors['姓名'] }"
+              v-model="userData.user.name"
+                       placeholder="請輸入姓名" rules="required"></v-field>
+              <error-message name="姓名" class="invalid-feedback"></error-message>
+            </div>
+
+            <div class="mb-3">
+              <label for="tel" class="form-label">收件人電話</label>
+              <v-field id="tel" name="電話" type="text" class="form-control" :class="{ 'is-invalid': errors['電話'] }" v-model="userData.user.tel" rules="required"
+                       placeholder="請輸入電話" ></v-field>
+              <error-message name="電話" class="invalid-feedback"></error-message>
+            </div>
+
+            <div class="mb-3">
+              <label for="address" class="form-label">收件人地址</label>
+              <v-field id="address" name="地址" type="text" class="form-control" :class="{ 'is-invalid': errors['地址'] }" v-model="userData.user.address"
+                       placeholder="請輸入地址" rules="required" ></v-field>
+              <error-message name="地址" class="invalid-feedback"></error-message>
+            </div>
+
+            <div class="mb-3">
+              <label for="message" class="form-label">留言</label>
+              <textarea id="message" class="form-control" cols="30" rows="10" v-model="userData.message"></textarea>
+            </div>
+            <div class="text-end">
+              <button type="submit" class="btn btn-danger"
+                      >送出訂單</button>
+            </div>
+          </v-form>
+          <user-product-modal :tem-product="temProduct" ref="userModal" :add-tocart="addTocart"></user-product-modal>
+          <remove-cart-modal ref="removeModal" :remove-cart="removeCart" :remove-carts="removeCarts"></remove-cart-modal>
+        </div>
+      </div>
+    </div>
+    <script type="text/x-template" id="userProductModal">
+        <div class="modal fade" id="productModal" tabindex="-1" role="dialog"
+            aria-labelledby="exampleModalLabel" aria-hidden="true" ref="modal">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content border-0">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="exampleModalLabel">
+                <span></span>
+            </h5>
+                <button type="button" class="btn-close"
+                        data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                <div class="col-sm-6">
+                    <img class="img-fluid" :src="temProduct.imageUrl" alt="">
+            </div>
+                <div class="col-sm-6">
+                    <span class="badge bg-primary rounded-pill">{{  }}</span>
+                    <p>商品描述：{{ temProduct.description }}</p>
+                    <p>商品內容：{{ temProduct.content }}</p>
+                    <div class="h5" v-if="temProduct.price === temProduct.origin_price">{{  }} 元</div>
+                    <div v-else>
+                        <del class="h6">原價 {{temProduct.origin_price }} 元</del>
+                        <div class="h5">現在只要 {{ temProduct.price }} 元</div>
+                    </div>
+                    <div>
+                    <div class="input-group">
+                        <select name="" id="" class="form-select" v-model="qty">
+                            <option :value="i" v-for="i in 20" :key="i">{{i}}</option>
+                        </select>
+                        <button type="button" class="btn btn-primary" @click="addTocart(temProduct.id, qty)">加入購物車</button>
+            </div>
+            </div>
+            </div>
+                <!-- col-sm-6 end -->
+            </div>
+            </div>
+            </div>
+            </div>
+        </div>
+    </script>
+
+    
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vee-validate/4.12.4/vee-validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@vee-validate/rules@4.12.4/dist/vee-validate-rules.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@vee-validate/i18n@4.12.4/dist/vee-validate-i18n.min.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.9.1/axios.min.js'
+    integrity='sha512-Xk3wWei2TGrsh9kDSBKUMIjw/86sLUvhtnv9f7fOuIwhhiUTKz8szkWkzHthrM5Bb3Bu9idSzkxOrkzhcneuiw=='
+    crossorigin='anonymous'></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"
+    integrity="sha384-SR1sx49pcuLnqZUnnPwx6FCym0wLsk5JZuNx2bPPENzswTNFaQU1RDvt3wT4gWFG"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.min.js"
+    integrity="sha384-j0CNLUeiqtyaRmlzUHCPZ+Gy5fQu0dQ6eZ/xAww941Ai1SxSY+0EQqNXNE6DZiVc"
+    crossorigin="anonymous"></script>
+    <script type="module">
+      Object.keys(VeeValidateRules).forEach(rule => {
+        if (rule !== 'default') {
+            VeeValidate.defineRule(rule, VeeValidateRules[rule]);
+        }
+        });
+                // 讀取外部的資源
+        VeeValidateI18n.loadLocaleFromURL('./zh_TW.json');
+
+        // Activate the locale
+        VeeValidate.configure({
+          generateMessage: VeeValidateI18n.localize('zh_TW'),
+          validateOnInput: true, // 調整為：輸入文字時，就立即進行驗證
+        });
+         const url = "https://ec-course-api.hexschool.io/v2";
+         const api_path = "ssozr";
+         const userProductModal = {
+            props:['temProduct','addTocart'],
+            data() {
+                return {
+                    productModal:'',
+                    qty: 1
+                }
+            },
+            methods:{
+                openModal() {
+                    this.productModal.show()
+                },
+                closeModal() {
+                    this.productModal.hide()
+                }
+            },
+            watch:{
+                temProduct() {
+                    this.qty = 1
+                }
+            },
+            template:'#userProductModal',
+            mounted() {
+                this.productModal = new bootstrap.Modal(this.$refs.modal)
+            }
+         }
+
+         const removeCartModal = {
+            props:['removeCart','removeCarts'],
+            data() {
+                return {
+                    removeModal:'',
+                    cartData:''
+                }
+            },
+            methods:{
+                openModal(item) {
+                    this.removeModal.show()
+                    this.cartData = {...item}
+                },
+                closeModal() {
+                    this.removeModal.hide()
+                }
+            },
+            template:`<div class="modal" tabindex="-1" ref="removeModal">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" v-if="!cartData.product?.title">清空購物車</h5>
+                        <h5 class="modal-title" v-else>商品名稱:{{cartData.product?.title}}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>是否確認</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">考慮一下</button>
+                        <button type="button" class="btn btn-primary" v-if="!cartData.product?.title" @click="removeCarts">確定刪除</button>
+                        <button type="button" class="btn btn-primary" v-else @click="removeCart(cartData.id)">確定刪除</button>
+                    </div>
+                    </div>
+                </div>
+                </div>`,
+            mounted() {
+                this.removeModal = new bootstrap.Modal(this.$refs.removeModal)
+            }
+                    
+         }
+         const app = Vue.createApp({
+            data(){
+                return {
+                    products:[],
+                    cartsData:{},
+                    productModal:'',
+                    temProduct:{},
+                    loading:false,
+                    cartXLoading:false,
+                    userData:{
+                      user:{
+                        name:'',
+                        email:'',
+                        tel:'',
+                        address:''
+                    },
+                      message:''
+                    }
+                }
+            },
+            methods:{
+                getProducts(){
+                    axios.get(`${url}/api/${api_path}/products`)
+                    .then((res)=>{
+                        this.products = res.data.products
+                        
+                    })
+                    .catch((err)=>{
+                        alert(`${err.data.message}`)
+                    })
+                },
+                getCartsData(){
+                    axios.get(`${url}/api/${api_path}/cart`)
+                    .then((res)=>{
+                        this.cartsData = res.data
+                        
+                    })
+                    .catch((err)=>{
+                        alert(`${err.data.message}`)
+                    })
+                },
+                openProductModal(temProduct){
+                    this.temProduct = temProduct
+                    this.$refs.userModal.openModal()
+                },
+                changeQty(cartData, qty) {
+                    console.log(qty)
+                    const data = {
+                        product_id: cartData.product_id,
+                        qty
+                    }
+                    this.loading = true
+                    axios.put(`${url}/api/${api_path}/cart/${cartData.id}`,{ data })
+                    .then((res)=>{
+                        alert('數量修改成功')
+                        this.$refs.userModal.closeModal()
+                        this.loading = false
+                        this.getCartsData()
+                        
+                    })
+                    .catch((err)=>{
+                        alert(`${err.data.message}`)
+                    })
+                },
+                addTocart(product_id,qty = 1) {
+                    const data = {
+                        product_id,
+                        qty
+                    }
+                    this.loading = true
+                    axios.post(`${url}/api/${api_path}/cart`,{ data })
+                    .then((res)=>{
+                        alert('成功加入購物車')
+                        this.$refs.userModal.closeModal()
+                        this.loading = false
+                        this.getCartsData()
+                        
+                    })
+                    .catch((err)=>{
+                        alert(`${err.data.message}`)
+                    })
+                },
+                removeCart(id) {
+                    this.cartXLoading = true
+                    axios.delete(`${url}/api/${api_path}/cart/${id}`)
+                    .then((res)=>{
+                        alert('刪除成功')
+                        this.cartXLoading = false
+                        this.$refs.removeModal.closeModal()
+                        this.getCartsData()
+                    })
+                    .catch((err)=>{
+                        alert(`${err.data.message}`)
+                    })
+                },
+                removeCarts() {
+                    console.log(123)
+                    this.cartXLoading = true
+                    axios.delete(`${url}/api/${api_path}/carts`)
+                    .then((res)=>{
+                        alert('清空購物車成功')
+                        this.$refs.removeModal.closeModal()
+                        this.getCartsData()
+                    })
+                    .catch((err)=>{
+                        alert(`${err.data.message}`)
+                    })
+                },
+                openRemoveModal(item) {
+                    this.$refs.removeModal.openModal(item)
+                },
+                onSubmit() {
+                  const data = {...this.userData}
+                  axios.post(`${url}/api/${api_path}/order`,{
+                    data
+                  })
+                    .then((res)=>{
+                        alert("已送出訂單")
+                        getCartsData()
+                        this.userData = {
+                          user:{
+                            name:'',
+                            email:'',
+                            tel:'',
+                            address:''
+                        },
+                          message:''
+                        }
+                    })
+                    .catch((err)=>{
+                        alert(`${err.data.message}`)
+                    })
+                },
+            },
+            mounted(){
+                this.getProducts()
+                this.getCartsData()
+                this.productModal = new bootstrap.Modal(this.$refs.userProductModal)
+            },
+            components: {
+                userProductModal,
+                removeCartModal
+            }
+        });
+        app.component('VForm', VeeValidate.Form);
+        app.component('VField', VeeValidate.Field);
+        app.component('ErrorMessage', VeeValidate.ErrorMessage);
+        app.mount("#app")
+    </script>
+  </body>
+
+</html>
